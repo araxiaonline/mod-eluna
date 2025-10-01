@@ -2475,9 +2475,9 @@ namespace LuaPlayer
      *
      * @param [Unit] sender
      */
-    int SendAuctionMenu(lua_State* L, Player* player)
+    int SendAuctionMenu(lua_State* L, Player* /*player*/)
     {
-        Unit* unit = Eluna::CHECKOBJ<Unit>(L, 2);
+        Eluna::CHECKOBJ<Unit>(L, 2);
 
 #if defined TRINITY || AZEROTHCORE
         // AuctionHouseEntry const* ahEntry = AuctionHouseMgr::GetAuctionHouseFactionFromHouseId(static_cast<AuctionHouseId>(unit->GetFaction()));
