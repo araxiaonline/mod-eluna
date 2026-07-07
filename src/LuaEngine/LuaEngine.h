@@ -19,6 +19,9 @@
 #endif
 #include "Weather.h"
 #include "World.h"
+#ifdef AZEROTHCORE
+#include "WorldSessionMgr.h"
+#endif
 #include "Hooks.h"
 #include "LFG.h"
 #include "ElunaUtility.h"

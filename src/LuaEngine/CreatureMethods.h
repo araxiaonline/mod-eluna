@@ -59,7 +59,7 @@ namespace LuaCreature
      */
     int IsReputationGainDisabled(lua_State* L, Creature* creature)
     {
-        Eluna::Push(L, creature->IsReputationGainDisabled());
+        Eluna::Push(L, creature->IsReputationRewardDisabled());
         return 1;
     }
 
@@ -769,22 +769,22 @@ namespace LuaCreature
 #elif defined(TRINITY)
         auto const& threatlist = creature->GetThreatManager().GetSortedThreatList();
 #elif defined(AZEROTHCORE)
-        auto const& threatlist = creature->GetThreatMgr().GetThreatList();
+        auto const& threatlist = creature->GetThreatMgr().GetSortedThreatList();
 #endif
-#ifndef TRINITY
+#if !defined(TRINITY) && !defined(AZEROTHCORE)
         if (threatlist.empty())
             return 1;
         if (position >= threatlist.size())
             return 1;
 #endif
         std::list<Unit*> targetList;
-#if defined(TRINITY)
+#if defined(TRINITY) || defined(AZEROTHCORE)
         for (ThreatReference const* itr : threatlist)
 #else
         for (auto itr = threatlist.begin(); itr != threatlist.end(); ++itr)
 #endif
             {
-#if defined(TRINITY)
+#if defined(TRINITY) || defined(AZEROTHCORE)
             Unit* target = itr->GetVictim();
 #else
             Unit* target = (*itr)->getTarget();
@@ -860,7 +860,7 @@ namespace LuaCreature
 #if defined(TRINITY)
         auto const& threatlist = creature->GetThreatManager().GetThreatenedByMeList();
 #elif defined(AZEROTHCORE)
-auto const& threatlist = creature->GetThreatMgr().GetThreatList();
+        auto const& threatlist = creature->GetThreatMgr().GetModifiableThreatList();
 #else
         ThreatList const& threatlist = creature->GetThreatManager().getThreatList();
 #endif
@@ -871,6 +871,8 @@ auto const& threatlist = creature->GetThreatMgr().GetThreatList();
         {
 #if defined(TRINITY)
             Unit* target = itr->second->GetOwner();
+#elif defined(AZEROTHCORE)
+            Unit* target = (*itr)->GetVictim();
 #else
             Unit* target = (*itr)->getTarget();
 #endif
@@ -1172,7 +1174,7 @@ auto const& threatlist = creature->GetThreatMgr().GetThreatList();
     {
         bool disable = Eluna::CHECKVAL<bool>(L, 2, true);
 
-        creature->SetDisableReputationGain(disable);
+        creature->SetReputationRewardDisabled(disable);
         return 0;
     }
 
@@ -1307,7 +1309,7 @@ auto const& threatlist = creature->GetThreatMgr().GetThreatList();
 #if defined(TRINITY)
         creature->DespawnOrUnsummon(Milliseconds(msTimeToDespawn));
 #elif defined(AZEROTHCORE)
-        creature->DespawnOrUnsummon(msTimeToDespawn);
+        creature->DespawnOrUnsummon(Milliseconds(msTimeToDespawn));
 #else
         creature->ForcedDespawn(msTimeToDespawn);
 #endif
@@ -1338,7 +1340,7 @@ auto const& threatlist = creature->GetThreatMgr().GetThreatList();
     int MoveWaypoint(lua_State* /*L*/, Creature* creature)
     {
 #if defined(TRINITY) || defined(AZEROTHCORE)
-        creature->GetMotionMaster()->MovePath(creature->GetWaypointPath(), true);
+        creature->GetMotionMaster()->MovePath(creature->GetWaypointPath());
 #else
         creature->GetMotionMaster()->MoveWaypoint();
 #endif
