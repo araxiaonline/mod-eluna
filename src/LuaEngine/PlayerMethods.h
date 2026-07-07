@@ -2575,7 +2575,7 @@ namespace LuaPlayer
     {
         Creature* obj = Eluna::CHECKOBJ<Creature>(L, 2);
 
-#ifdef TRINITY
+#if defined(TRINITY) || defined(AZEROTHCORE)
         player->GetSession()->SendTrainerList(obj);
 #else
         player->GetSession()->SendTrainerList(obj->GET_GUID());

@@ -79,7 +79,28 @@ namespace LuaUnit
         float value = Eluna::CHECKVAL<float>(L, 4);
         bool apply = Eluna::CHECKVAL<bool>(L, 5, false);
 
-        Eluna::Push(L, unit->HandleStatModifier(UnitMods(UNIT_MOD_STAT_START + stat), (UnitModifierType)type, value, apply));
+        // Core split UnitModifierType into flat (BASE_VALUE/TOTAL_VALUE) and pct
+        // (BASE_PCT/TOTAL_PCT) APIs; keep accepting the old 0-3 Lua values
+        switch (type)
+        {
+            case 0: // BASE_VALUE
+                Eluna::Push(L, unit->HandleStatFlatModifier(UnitMods(UNIT_MOD_STAT_START + stat), BASE_VALUE, value, apply));
+                break;
+            case 2: // TOTAL_VALUE
+                Eluna::Push(L, unit->HandleStatFlatModifier(UnitMods(UNIT_MOD_STAT_START + stat), TOTAL_VALUE, value, apply));
+                break;
+            case 1: // BASE_PCT
+                unit->ApplyStatPctModifier(UnitMods(UNIT_MOD_STAT_START + stat), BASE_PCT, value);
+                Eluna::Push(L, true);
+                break;
+            case 3: // TOTAL_PCT
+                unit->ApplyStatPctModifier(UnitMods(UNIT_MOD_STAT_START + stat), TOTAL_PCT, value);
+                Eluna::Push(L, true);
+                break;
+            default:
+                Eluna::Push(L, false);
+                break;
+        }
         return 1;
     }
 
@@ -1116,7 +1137,7 @@ namespace LuaUnit
 
         Acore::AnyFriendlyUnitInObjectRangeCheck checker(unit, unit, range);
         Acore::UnitListSearcher<Acore::AnyFriendlyUnitInObjectRangeCheck> searcher(unit, list, checker);
-        Cell::VisitAllObjects(unit, searcher, range);
+        Cell::VisitObjects(unit, searcher, range);
 
         ElunaUtil::ObjectGUIDCheck guidCheck(unit->GET_GUID());
         list.remove_if(guidCheck);
@@ -1148,7 +1169,7 @@ namespace LuaUnit
         std::list<Unit*> list;
         Acore::AnyUnfriendlyUnitInObjectRangeCheck checker(unit, unit, range);
         Acore::UnitListSearcher<Acore::AnyUnfriendlyUnitInObjectRangeCheck> searcher(unit, list, checker);
-        Cell::VisitAllObjects(unit, searcher, range);
+        Cell::VisitObjects(unit, searcher, range);
         ElunaUtil::ObjectGUIDCheck guidCheck(unit->GET_GUID());
         list.remove_if(guidCheck);
 
@@ -1885,7 +1906,7 @@ namespace LuaUnit
             return 1;
         }
 
-        ThreatContainer::StorageType const& list = unit->GetThreatMgr().GetThreatList();
+        std::vector<ThreatReference*> const list = unit->GetThreatMgr().GetModifiableThreatList();
 
         lua_newtable(L);
         int table = lua_gettop(L);
@@ -2153,7 +2174,7 @@ namespace LuaUnit
         float y = Eluna::CHECKVAL<float>(L, 4);
         float z = Eluna::CHECKVAL<float>(L, 5);
         bool genPath = Eluna::CHECKVAL<bool>(L, 6, true);
-        unit->GetMotionMaster()->MovePoint(id, x, y, z, genPath);
+        unit->GetMotionMaster()->MovePoint(id, x, y, z, FORCED_MOVEMENT_NONE, 0.f, 0.0f, genPath);
         return 0;
     }
 

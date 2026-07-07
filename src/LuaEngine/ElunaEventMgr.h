@@ -24,7 +24,7 @@
 
 class Eluna;
 class EventMgr;
-class ElunaEventProcessor;
+class ALEEventProcessor;
 class WorldObject;
 
 enum LuaEventState
@@ -60,7 +60,7 @@ struct LuaEvent
     LuaEventState state;    // State for next call
 };
 
-class ElunaEventProcessor
+class ALEEventProcessor
 {
     friend class EventMgr;
 
@@ -68,8 +68,8 @@ public:
     typedef std::multimap<uint64, LuaEvent*> EventList;
     typedef std::unordered_map<int, LuaEvent*> EventMap;
 
-    ElunaEventProcessor(Eluna** _E, WorldObject* _obj);
-    ~ElunaEventProcessor();
+    ALEEventProcessor(Eluna** _E, WorldObject* _obj);
+    ~ALEEventProcessor();
 
     void Update(uint32 diff);
     // removes all timed events on next tick or at tick end
@@ -92,9 +92,9 @@ private:
 class EventMgr : public ElunaUtil::Lockable
 {
 public:
-    typedef std::unordered_set<ElunaEventProcessor*> ProcessorSet;
+    typedef std::unordered_set<ALEEventProcessor*> ProcessorSet;
     ProcessorSet processors;
-    ElunaEventProcessor* globalProcessor;
+    ALEEventProcessor* globalProcessor;
     Eluna** E;
 
     EventMgr(Eluna** _E);
